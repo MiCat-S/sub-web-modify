@@ -4,14 +4,6 @@
       <el-col>
         <el-card>
           <div slot="header">
-            <svg-icon class="gayhub" icon-class="github" style="float:left" @click="goToProject"/>
-            <svg-icon class="dianbao" icon-class="telegram" style="float:left;margin-left: 10px"
-                      @click="gotoTgChannel"/>
-            <svg-icon class="bilibili" icon-class="bilibili" style="float:right;margin-left:10px"
-                      @click="gotoBiliBili"/>
-            <svg-icon class="youguan" icon-class="youtube" style="float:right;margin-left:10px" @click="gotoYouTuBe"/>
-            <svg-icon class="channel" icon-class="telegram" style="float:right;margin-left: 10px"
-                      @click="gotoTgChannel"/>
             <div style="text-align:center;font-size:15px">订 阅 转 换</div>
           </div>
           <el-container>
@@ -258,9 +250,9 @@
                 <el-button
                     style="width: 250px;"
                     type="success"
-                    icon="el-icon-video-play"
-                    @click="centerDialogVisible = true"
-                >视频教程
+                    icon="el-icon-download"
+                    @click="toolsDown"
+                >代理工具集合
                 </el-button>
               </el-form-item>
             </el-form>
@@ -268,41 +260,6 @@
         </el-card>
       </el-col>
     </el-row>
-    <el-dialog
-        title="请选择需要观看的视频教程"
-        :visible.sync="centerDialogVisible"
-        :show-close="false"
-        width="40vh"
-        top="30vh"
-        center>
-      <div label-width="0px" style="text-align: center">
-        <el-button
-            style="width: 200px;"
-            type="primary"
-            icon="el-icon-video-play"
-            @click="gotoBasicVideo();centerDialogVisible = false"
-        >基础视频教程
-        </el-button>
-      </div>
-      <div label-width="0px" style="text-align: center;margin: 3vh 0 2vh">
-        <el-button
-            style="width: 200px;"
-            type="danger"
-            icon="el-icon-video-play"
-            @click="gotoAdvancedVideo();centerDialogVisible = false"
-        >进阶视频教程
-        </el-button>
-      </div>
-      <div label-width="0px" style="text-align: center;margin: 3vh 0 2vh">
-        <el-button
-            style="width: 200px;"
-            type="warning"
-            icon="el-icon-download"
-            @click="toolsDown"
-        >代理工具集合
-        </el-button>
-      </div>
-    </el-dialog>
     <el-dialog
         :visible.sync="dialogUploadConfigVisible"
         :show-close="false"
@@ -344,7 +301,7 @@
             <el-form-item prop="uploadScript">
               <el-input
                   v-model="uploadScript"
-                  placeholder="本功能暂停使用，如有兴趣，自行去我的GitHub参考sub-web-api项目部署！"
+                  placeholder="本功能暂停使用，请自行部署兼容的配置上传后端"
                   type="textarea"
                   :autosize="{ minRows: 15, maxRows: 15}"
                   maxlength="50000"
@@ -370,7 +327,7 @@
             <el-form-item prop="uploadFilter">
               <el-input
                   v-model="uploadFilter"
-                  placeholder="本功能暂停使用，如有兴趣，自行去我的GitHub参考sub-web-api项目部署！"
+                  placeholder="本功能暂停使用，请自行部署兼容的配置上传后端"
                   type="textarea"
                   :autosize="{ minRows: 15, maxRows: 15}"
                   maxlength="50000"
@@ -424,7 +381,6 @@
   </div>
 </template>
 <script>
-const project = process.env.VUE_APP_PROJECT
 const configScriptBackend = process.env.VUE_APP_CONFIG_UPLOAD_BACKEND + '/api.php'
 const remoteConfigSample = process.env.VUE_APP_SUBCONVERTER_REMOTE_CONFIG
 const scriptConfigSample = process.env.VUE_APP_SCRIPT_CONFIG
@@ -432,17 +388,11 @@ const filterConfigSample = process.env.VUE_APP_FILTER_CONFIG
 const defaultBackend = process.env.VUE_APP_SUBCONVERTER_DEFAULT_BACKEND
 const shortUrlBackend = process.env.VUE_APP_MYURLS_DEFAULT_BACKEND + '/short'
 const configUploadBackend = process.env.VUE_APP_CONFIG_UPLOAD_BACKEND + '/sub.php'
-const basicVideo = process.env.VUE_APP_BASIC_VIDEO
-const advancedVideo = process.env.VUE_APP_ADVANCED_VIDEO
-const tgBotLink = process.env.VUE_APP_BOT_LINK
-const yglink = process.env.VUE_APP_YOUTUBE_LINK
-const bzlink = process.env.VUE_APP_BILIBILI_LINK
-const downld = 'http://' + window.location.host + '/download.html'
+const downld = window.location.origin + '/download.html'
 export default {
   data() {
     return {
       backendVersion: "",
-      centerDialogVisible: false,
       activeName: 'first',
       // 是否为 PC 端
       isPC: true,
@@ -471,19 +421,17 @@ export default {
           "自动判断客户端": "auto",
         },
         shortTypes: {
-          "v1.mk": "https://v1.mk/short",
+          "默认短链后端": shortUrlBackend,
           "d1.mk": "https://d1.mk/short",
           "dlj.tf": "https://dlj.tf/short",
           "suo.yt": "https://suo.yt/short",
           "sub.cm": "https://sub.cm/short",
         },
         customBackend: {
-          "肥羊增强型后端【vless reality+anytls】": "https://api.v1.mk",
-          "肥羊备用后端【vless reality+anytls】": "https://url.v1.mk",
+          "默认后端": defaultBackend,
         },
         backendOptions: [
-          {value: "https://api.v1.mk"},
-          {value: "https://url.v1.mk"},
+          {value: defaultBackend},
         ],
         remoteConfig: [
           {
@@ -496,10 +444,6 @@ export default {
               {
                 label: "默认（自动测速）",
                 value: "https://raw.githubusercontent.com/ACL4SSR/ACL4SSR/master/Clash/config/ACL4SSR_Online_Full_AdblockPlus.ini"
-              },
-              {
-                label: "默认（索尼电视专用）",
-                value: "https://raw.githubusercontent.com/youshandefeiyang/webcdn/main/SONY.ini"
               },
               {
                 label: "默认（附带用于 Clash 的 AdGuard DNS）",
@@ -883,8 +827,8 @@ export default {
       form: {
         sourceSubUrl: "",
         clientType: "",
-        customBackend: this.getUrlParam() == "" ? "https://api.v1.mk" : this.getUrlParam(),
-        shortType: "https://v1.mk/short",
+        customBackend: this.getUrlParam() == "" ? defaultBackend : this.getUrlParam(),
+        shortType: shortUrlBackend,
         remoteConfig: "https://raw.githubusercontent.com/ACL4SSR/ACL4SSR/master/Clash/config/ACL4SSR_Online_Full_NoAuto.ini",
         excludeRemarks: "",
         includeRemarks: "",
@@ -930,7 +874,6 @@ export default {
       uploadFilter: "",
       uploadScript: "",
       uploadConfig: "",
-      myBot: tgBotLink,
       filterConfig: filterConfigSample,
       scriptConfig: scriptConfigSample,
       sampleConfig: remoteConfigSample
@@ -941,7 +884,6 @@ export default {
     this.isPC = this.$getOS().isPc;
   },
   mounted() {
-    this.tanchuang();
     this.form.clientType = "clash";
     this.getBackendVersion();
     this.anhei();
@@ -1004,52 +946,11 @@ export default {
         window.localStorage.setItem('localTheme', 'light-mode');
       }
     },
-    tanchuang() {
-      this.$alert(`<div style="color:black;text-align:center;font-size:15px"><strong><span style="font-size:20px">本站官方TG交流群：</span><span><a href="https://t.me/feiyangdigital" target="_blank" style="color:red;font-size:20px;text-decoration:none">点击加入</a></span></strong></br><strong><span style="font-size:20px">老牌高端机场Rancho（<span style="color:blue">拥有数十不同国家节点，全部原生解锁支持奈飞、迪士尼、HBO等各种流媒体，全部套餐节点支持Chat GPT等各种AI，支持ISP住宅IP助力Tiktok等跨境贸易使用，采用最新Vless Encryption量子加密协议和AnyTLS双协议，在众多机场不稳定的今天，依旧生龙活虎，Vless Encryption量子加密协议和AnyTLS双协议+企业级跨境专线，是当下恶劣环境的最优解，全部套餐购买后直接赠送Emby影音服务，最高可体验4K杜比视界画展，媲美奈飞4K杜比视界，免费给购买了任意套餐的用户开放，稳定运营五年未跑路，在今年大多数机场纷纷倒闭的情况下，依旧坚挺扩张，还推出了包括Android TV在内的一键客户端，方便电视用户遥控操作，非常便利，强烈推荐，非常值得购买！</span>：<span><a href="https://www.mcwy.org" target="_blank" style="color:red;font-size:20px;text-decoration:none">点击注册</a></span></strong></br><strong><span style="font-size:20px">115蓝光4K原盘内部资源群</span></strong>）：</span><strong><span><a href="https://readme.115vip.shop/" target="_blank" style="color:red;font-size:20px;text-decoration:none">点击查看</a></span></strong></br><strong><span style="font-size:20px">奈飞、ChatGPT合租（<span style="color:blue">优惠码：feiyang</span>）：</span><span><a href="https://hezu.v1.mk/" style="color:red;font-size:20px;text-decoration:none">点击上车</a></span></strong></br>本站服务器赞助机场-牧场物语，BGP中继+IEPL企业级内网专线的高端机场，适合各个价位要求的用户，牧场物语采用最新的奈飞非自制剧解决方案，出口随机更换IP，确保尽可能的每个用户可以用上独立IP，以此来稳定解决奈飞非自制剧的封锁，并推出7*24小时奈飞非自制剧节点自动检测系统，用户再也不用自己手动一个个的乱试节点了，目前牧场的新加坡，台湾等节区域点均可做到24H稳定非自制剧观看，支持Chat-GPT和ISP住宅IP助力Tiktok等跨境贸易使用！</br></div>`, '信息面板', {
-        confirmButtonText: '确定',
-        dangerouslyUseHTMLString: true,
-        customClass: 'msgbox'
-      });
-    },
     onCopy() {
       this.$message.success("已复制");
     },
-    goToProject() {
-      window.open(project);
-    },
-    gotoTgChannel() {
-      window.open(tgBotLink);
-    },
-    gotoBiliBili() {
-      window.open(bzlink);
-    },
-    gotoYouTuBe() {
-      window.open(yglink);
-    },
     toolsDown() {
       window.open(downld);
-    },
-    gotoBasicVideo() {
-      this.$alert("别忘了关注友善的肥羊哦！", {
-        type: "warning",
-        confirmButtonText: '确定',
-        customClass: 'msgbox',
-        showClose: false,
-      })
-          .then(() => {
-            window.open(basicVideo);
-          });
-    },
-    gotoAdvancedVideo() {
-      this.$alert("别忘了关注友善的肥羊哦！", {
-        type: "warning",
-        confirmButtonText: '确定',
-        customClass: 'msgbox',
-        showClose: false,
-      })
-          .then(() => {
-            window.open(advancedVideo);
-          });
     },
     makeUrl() {
       if (this.form.sourceSubUrl === "" || this.form.clientType === "") {
@@ -1405,9 +1306,8 @@ export default {
           .then(res => {
             this.backendVersion = res.data.replace(/backend\n$/gm, "");
             this.backendVersion = this.backendVersion.replace("subconverter", "SubConverter");
-            let a = this.form.customBackend.indexOf("api.v1.mk") !== -1 || this.form.customBackend.indexOf("url.v1.mk") !== -1;
             let b = this.form.customBackend.indexOf("127.0.0.1") !== -1;
-            a ? this.$message.success(`${this.backendVersion}` + "肥羊负载均衡增强版后端，已屏蔽免费节点池（会返回403），额外支持Vless Reality/Encryption/xhttp+AnyTLS+TUIC+Mieru订阅转换") : b ? this.$message.success(`${this.backendVersion}` + "本地局域网自建版后端") : this.$message.success(`${this.backendVersion}` + "官方原版后端不支持vless/hysteria/anytls等订阅转换");
+            b ? this.$message.success(`${this.backendVersion} 本地后端连接成功`) : this.$message.success(`${this.backendVersion} 后端连接成功`);
           })
           .catch(() => {
             this.$message.error("请求SubConverter版本号返回数据失败，该后端不可用！");
