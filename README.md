@@ -1,27 +1,51 @@
 # sub-web-modify
-[本项目](https://suburl.v1.mk)重制[原项目](https://github.com/CareyWang/sub-web)CSS样式，兼容nodejs 24最新版本（可直接一键部署至Vercel），解决大部分布局细节问题，增加“暗黑模式”，默认自动切换亮/暗模式（点击“太阳/月亮”图标可手动切换），增加“高级功能”点击显示/隐藏，添加短链接选择/自定义功能，增加近百条远程配置，新增[sub-web聚合API](https://github.com/youshandefeiyang/sub-web-api)，增加从短链接中获取订阅信息并返回至前端界面，增加上传自定义远程配置/JS进阶排序节点/JS进阶筛选节点等功能，感兴趣的朋友可以自建API服务，增加URL传参设置自定义后端<br/>
-## 效果预览：
-![avatar](https://raw.githubusercontent.com/youshandefeiyang/webcdn/main/sub-web-modify.GIF)
-### 使用方法：
-建议使用Docker一键部署:
-```
-docker run -d --restart always -p 8090:80 --name sub-web-modify youshandefeiyang/sub-web-modify
-```
-或使用docker compose
-```yaml
-name: sub-web-modify
-services:
-    sub-web-modify:
-        restart: always
-        privileged: false
-        ports:
-            - 8090:80
-        container_name: sub-web-modify
-        image: youshandefeiyang/sub-web-modify
-```
-运行docker compose: `docker compose up -d`
 
-访问地址举例:
+基于 Vue 2 和 Element UI 的订阅转换前端。默认订阅转换后端为 `https://api.are.sb`。
+
+## 技术栈
+
+- Vue 2.7 + Vue Router 3
+- Vue CLI 5 + Webpack
+- Element UI 2
+- Axios
+- Yarn Classic（仓库包含 `yarn.lock`）
+
+## 本地开发
+
+推荐使用 Node.js 22。
+
+```bash
+git clone https://github.com/Autlin/sub-web-modify.git
+cd sub-web-modify
+yarn install --frozen-lockfile
+yarn serve
 ```
-http://192.168.10.1:8090/?backend=https://url.v1.mk
+
+开发服务器默认地址为 `http://localhost:8080`。
+
+## 构建
+
+```bash
+yarn build
 ```
+
+构建产物位于 `dist/`，可部署到任意静态 Web 服务器。
+
+## Docker
+
+```bash
+docker build -t sub-web-modify .
+docker run -d --restart always -p 8090:80 --name sub-web-modify sub-web-modify
+```
+
+访问 `http://localhost:8090`。
+
+## 自定义后端
+
+可通过页面的“后端地址”输入框或 URL 参数覆盖默认后端：
+
+```text
+http://localhost:8080/?backend=https://api.are.sb
+```
+
+项目继续保留原仓库的开源许可证，详见 `LICENSE`。
