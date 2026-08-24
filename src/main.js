@@ -5,12 +5,12 @@ require(`@/plugins/element-ui`)
 require(`@/plugins/clipboard`)
 require(`@/plugins/axios`)
 require(`@/plugins/device`)
-require(`@/plugins/particles`)
 
 
 import 'element-ui/lib/theme-chalk/index.css'
 import './assets/css/light.min.css'
 import './assets/css/dark.min.css'
+import './assets/css/ui.css'
 
 Vue.config.productionTip = false
 

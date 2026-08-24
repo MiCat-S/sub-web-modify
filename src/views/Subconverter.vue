@@ -1,247 +1,193 @@
 <template>
-  <div>
-    <el-row style="margin-top: 10px">
-      <el-col>
-        <el-card>
-          <div slot="header">
-            <div style="text-align:center;font-size:15px">订 阅 转 换</div>
+  <main class="converter-page">
+    <section class="converter-shell">
+      <el-card class="converter-card" shadow="never">
+        <div slot="header" class="converter-header">
+          <div>
+            <h1>订阅转换</h1>
+            <span class="converter-status">{{ backendVersion || "SubConverter" }}</span>
           </div>
-          <el-container>
-            <el-form :model="form" label-width="80px" label-position="left" style="width: 100%">
-              <el-form-item label="订阅链接:">
-                <el-input
-                    v-model="form.sourceSubUrl"
-                    type="textarea"
-                    rows="3"
-                    placeholder="支持各种订阅链接或单节点链接，多个链接每行一个或用 | 分隔"
-                />
-              </el-form-item>
-              <el-form-item label="生成类型:">
-                <el-select v-model="form.clientType" style="width: 100%">
-                  <el-option v-for="(v, k) in options.clientTypes" :key="k" :label="k" :value="v"></el-option>
-                </el-select>
-              </el-form-item>
-              <el-form-item label="后端地址:">
-                <el-select
-                    v-model="form.customBackend"
-                    allow-create
-                    filterable
-                    @change="selectChanged"
-                    placeholder="可输入自己的后端"
-                    style="width: 100%"
+          <el-tooltip content="切换明暗主题" placement="bottom">
+            <el-button class="theme-toggle" circle @click="change" aria-label="切换明暗主题">
+              <i id="rijian" class="el-icon-sunny"></i>
+              <i id="yejian" class="el-icon-moon"></i>
+            </el-button>
+          </el-tooltip>
+        </div>
+
+        <el-form class="converter-form" :model="form" label-width="96px" label-position="left">
+          <section class="form-section core-fields">
+            <el-form-item label="订阅链接">
+              <el-input
+                  v-model="form.sourceSubUrl"
+                  type="textarea"
+                  :rows="4"
+                  resize="vertical"
+                  placeholder="支持订阅链接或单节点链接，多个链接可换行或使用 | 分隔"
+              />
+            </el-form-item>
+            <el-form-item label="生成类型">
+              <el-select v-model="form.clientType" placeholder="选择目标客户端">
+                <el-option v-for="(v, k) in options.clientTypes" :key="k" :label="k" :value="v"></el-option>
+              </el-select>
+            </el-form-item>
+            <el-form-item label="后端地址">
+              <el-select
+                  v-model="form.customBackend"
+                  allow-create
+                  filterable
+                  @change="selectChanged"
+                  placeholder="选择或输入转换后端"
+              >
+                <el-option v-for="(v, k) in options.customBackend" :key="k" :label="k" :value="v"></el-option>
+              </el-select>
+            </el-form-item>
+            <el-form-item label="远程配置">
+              <el-select
+                  v-model="form.remoteConfig"
+                  allow-create
+                  filterable
+                  placeholder="选择或输入远程配置"
+              >
+                <el-option-group
+                    v-for="group in options.remoteConfig"
+                    :key="group.label"
+                    :label="group.label"
                 >
-                  <el-option v-for="(v, k) in options.customBackend" :key="k" :label="k" :value="v"></el-option>
-                </el-select>
-              </el-form-item>
-              <el-form-item label="远程配置:">
-                <el-select
-                    v-model="form.remoteConfig"
-                    allow-create
-                    filterable
-                    placeholder="请选择"
-                    style="width: 100%"
-                >
-                  <el-option-group
-                      v-for="group in options.remoteConfig"
-                      :key="group.label"
-                      :label="group.label"
-                  >
-                    <el-option
-                        v-for="item in group.options"
-                        :key="item.value"
-                        :label="item.label"
-                        :value="item.value"
-                    ></el-option>
-                  </el-option-group>
-                </el-select>
-              </el-form-item>
-              <el-form-item label-width="0px">
-                <el-collapse>
-                  <el-collapse-item>
-                    <template slot="title">
-                      <el-form-item label="高级功能:" style="width: 100%;">
-                        <el-button
-                            type="limr"
-                            style="width: 100%;"
-                            icon="el-icon-more-outline"
-                        >点击显示/隐藏
-                        </el-button>
-                      </el-form-item>
-                    </template>
-                    <el-form-item label="自定义UA:">
-                      <el-input v-model="form.diyua" placeholder="设置后端获取订阅链接时所用的自定义User-Agent"/>
-                    </el-form-item>
-                    <el-form-item label="包含节点:">
-                      <el-input v-model="form.includeRemarks" placeholder="要保留的节点，支持正则"/>
-                    </el-form-item>
-                    <el-form-item label="排除节点:">
-                      <el-input v-model="form.excludeRemarks" placeholder="要排除的节点，支持正则"/>
-                    </el-form-item>
-                    <el-form-item label="节点命名:">
-                      <el-input v-model="form.rename" placeholder="举例：`a@b``1@2`，|符可用\转义"/>
-                    </el-form-item>
-                    <el-form-item label="远程设备:">
-                      <el-input v-model="form.devid" placeholder="用于设置QuantumultX的远程设备ID"/>
-                    </el-form-item>
-                    <el-form-item label="更新间隔:">
-                      <el-input v-model="form.interval" placeholder="返用于设置托管配置更新间隔，单位为天"/>
-                    </el-form-item>
-                    <el-form-item label="订阅命名:">
-                      <el-input v-model="form.filename"
-                                placeholder="返回的订阅文件名，可以在支持文件名的客户端中显示出来"/>
-                    </el-form-item>
-                    <el-form-item class="eldiy" label-width="0px">
-                      <el-row type="flex">
-                        <el-col>
-                          <el-checkbox v-model="form.nodeList" label="仅输出节点信息" border></el-checkbox>
-                        </el-col>
-                        <el-popover placement="bottom" v-model="form.extraset">
-                          <el-row :gutter="10">
-                            <el-col :span="12">
-                              <el-checkbox v-model="form.emoji" label="Emoji"></el-checkbox>
-                            </el-col>
-                            <el-col :span="12">
-                              <el-checkbox v-model="form.insert" label="插入默认节点"></el-checkbox>
-                            </el-col>
-                          </el-row>
-                          <el-row :gutter="10">
-                            <el-col :span="12">
-                              <el-checkbox v-model="form.udp" label="启用 UDP"></el-checkbox>
-                            </el-col>
-                            <el-col :span="12">
-                              <el-checkbox v-model="form.xudp" label="启用 XUDP"></el-checkbox>
-                            </el-col>
-                          </el-row>
-                          <el-row :gutter="10">
-                            <el-col :span="12">
-                              <el-checkbox v-model="form.tfo" label="启用 TFO"></el-checkbox>
-                            </el-col>
-                            <el-col :span="12">
-                              <el-checkbox v-model="form.sort" label="基础节点排序"></el-checkbox>
-                            </el-col>
-                          </el-row>
-                          <el-row :gutter="10">
-                            <el-col :span="12">
-                              <el-checkbox v-model="form.tpl.clash.doh" label="Clash.DoH"></el-checkbox>
-                            </el-col>
-                            <el-col :span="12">
-                              <el-checkbox v-model="form.appendType" label="插入节点类型"></el-checkbox>
-                            </el-col>
-                          </el-row>
-                          <el-row :gutter="10">
-                            <el-col :span="12">
-                              <el-checkbox v-model="form.tpl.surge.doh" label="Surge.DoH"></el-checkbox>
-                            </el-col>
-                            <el-col :span="12">
-                              <el-checkbox v-model="form.tls13" label="开启TLS_1.3"></el-checkbox>
-                            </el-col>
-                          </el-row>
-                          <el-row :gutter="10">
-                            <el-col :span="12">
-                              <el-checkbox v-model="form.expand" label="展开规则全文"></el-checkbox>
-                            </el-col>
-                            <el-col :span="12">
-                              <el-checkbox v-model="form.new_name" label="Clash新字段名"></el-checkbox>
-                            </el-col>
-                          </el-row>
-                          <el-row :gutter="10">
-                            <el-col :span="12">
-                              <el-checkbox v-model="form.scv" label="跳过证书验证"></el-checkbox>
-                            </el-col>
-                            <el-col :span="12">
-                              <el-checkbox v-model="form.fdn" label="过滤不支持节点"></el-checkbox>
-                            </el-col>
-                          </el-row>
-                          <el-row :gutter="10">
-                            <el-col :span="12">
-                              <div style="margin-left: 35%">
-                                <el-checkbox v-model="form.tpl.singbox.ipv6" label="Sing-Box支持IPV6"></el-checkbox>
-                              </div>
-                            </el-col>
-                          </el-row>
-                          <el-button slot="reference">更多选项</el-button>
-                        </el-popover>
-                      </el-row>
-                    </el-form-item>
-                  </el-collapse-item>
-                </el-collapse>
-              </el-form-item>
-              <div style="margin-top: 30px"></div>
-              <el-divider content-position="center">
-                <el-button
-                    type="zhuti"
-                    @click="change">
-                  <i id="rijian" class="el-icon-sunny"></i>
-                  <i id="yejian" class="el-icon-moon"></i>
-                </el-button>
-              </el-divider>
-              <el-form-item label="定制订阅:">
-                <el-input class="copy-content" disabled v-model="customSubUrl">
-                  <el-button
-                      slot="append"
-                      v-clipboard:copy="customSubUrl"
-                      v-clipboard:success="onCopy"
-                      ref="copy-btn"
-                      icon="el-icon-document-copy"
-                  >复制
-                  </el-button>
-                </el-input>
-              </el-form-item>
-              <el-form-item label-width="0px" style="margin-top: 40px; text-align: center">
-                <el-button
-                    style="width: 250px"
-                    type="danger"
-                    @click="makeUrl"
-                    :disabled="form.sourceSubUrl.length === 0"
-                >生成订阅链接
-                </el-button>
-              </el-form-item>
-              <el-form-item label-width="0px" style="text-align: center">
-                <el-button
-                    style="width: 250px"
-                    type="primary"
-                    @click="dialogLoadConfigVisible = true"
-                    icon="el-icon-copy-document"
-                >从URL解析
-                </el-button>
-              </el-form-item>
-            </el-form>
-          </el-container>
-        </el-card>
-      </el-col>
-    </el-row>
+                  <el-option
+                      v-for="item in group.options"
+                      :key="item.value"
+                      :label="item.label"
+                      :value="item.value"
+                  ></el-option>
+                </el-option-group>
+              </el-select>
+            </el-form-item>
+          </section>
+
+          <el-collapse class="advanced-collapse">
+            <el-collapse-item name="advanced">
+              <template slot="title">
+                <div class="advanced-title">
+                  <span><i class="el-icon-setting"></i>高级设置</span>
+                  <span class="optional-label">可选</span>
+                </div>
+              </template>
+
+              <div class="advanced-grid">
+                <el-form-item label="自定义 UA">
+                  <el-input v-model="form.diyua" placeholder="后端获取订阅时使用的 User-Agent"/>
+                </el-form-item>
+                <el-form-item label="订阅名称">
+                  <el-input v-model="form.filename" placeholder="支持显示文件名的客户端可见"/>
+                </el-form-item>
+                <el-form-item label="包含节点">
+                  <el-input v-model="form.includeRemarks" placeholder="支持正则表达式"/>
+                </el-form-item>
+                <el-form-item label="排除节点">
+                  <el-input v-model="form.excludeRemarks" placeholder="支持正则表达式"/>
+                </el-form-item>
+                <el-form-item label="节点命名">
+                  <el-input v-model="form.rename" placeholder="例如：a@b``1@2"/>
+                </el-form-item>
+                <el-form-item label="远程设备">
+                  <el-input v-model="form.devid" placeholder="Quantumult X 远程设备 ID"/>
+                </el-form-item>
+                <el-form-item label="更新间隔">
+                  <el-input v-model="form.interval" placeholder="单位：天"/>
+                </el-form-item>
+              </div>
+
+              <div class="option-grid">
+                <el-checkbox v-model="form.nodeList" label="仅输出节点" border></el-checkbox>
+                <el-checkbox v-model="form.emoji" label="启用 Emoji" border></el-checkbox>
+                <el-checkbox v-model="form.insert" label="插入默认节点" border></el-checkbox>
+                <el-checkbox v-model="form.udp" label="启用 UDP" border></el-checkbox>
+                <el-checkbox v-model="form.xudp" label="启用 XUDP" border></el-checkbox>
+                <el-checkbox v-model="form.tfo" label="启用 TFO" border></el-checkbox>
+                <el-checkbox v-model="form.sort" label="基础节点排序" border></el-checkbox>
+                <el-checkbox v-model="form.appendType" label="插入节点类型" border></el-checkbox>
+                <el-checkbox v-model="form.tls13" label="启用 TLS 1.3" border></el-checkbox>
+                <el-checkbox v-model="form.expand" label="展开规则全文" border></el-checkbox>
+                <el-checkbox v-model="form.new_name" label="Clash 新字段名" border></el-checkbox>
+                <el-checkbox v-model="form.scv" label="跳过证书验证" border></el-checkbox>
+                <el-checkbox v-model="form.fdn" label="过滤不支持节点" border></el-checkbox>
+                <el-checkbox v-model="form.tpl.clash.doh" label="Clash DoH" border></el-checkbox>
+                <el-checkbox v-model="form.tpl.surge.doh" label="Surge DoH" border></el-checkbox>
+                <el-checkbox v-model="form.tpl.singbox.ipv6" label="Sing-Box IPv6" border></el-checkbox>
+              </div>
+            </el-collapse-item>
+          </el-collapse>
+
+          <div class="action-row">
+            <el-button
+                class="primary-action"
+                type="primary"
+                icon="el-icon-link"
+                @click="makeUrl"
+                :disabled="form.sourceSubUrl.length === 0"
+            >生成订阅链接</el-button>
+            <el-button
+                class="secondary-action"
+                icon="el-icon-document-copy"
+                @click="dialogLoadConfigVisible = true"
+            >解析已有链接</el-button>
+          </div>
+
+          <section class="result-section">
+            <div class="section-heading">
+              <span>转换结果</span>
+              <span v-if="customSubUrl" class="result-state">已生成</span>
+            </div>
+            <el-input
+                class="copy-content"
+                readonly
+                v-model="customSubUrl"
+                placeholder="生成后的订阅链接将在这里显示"
+            >
+              <el-button
+                  slot="append"
+                  v-clipboard:copy="customSubUrl"
+                  v-clipboard:success="onCopy"
+                  ref="copy-btn"
+                  icon="el-icon-document-copy"
+                  :disabled="customSubUrl.length === 0"
+              >复制</el-button>
+            </el-input>
+          </section>
+        </el-form>
+      </el-card>
+    </section>
+
     <el-dialog
+        class="parse-dialog"
+        title="解析订阅链接"
         :visible.sync="dialogLoadConfigVisible"
-        :show-close="false"
-        :close-on-click-modal="false"
-        :close-on-press-escape="false"
-        width="80%"
+        :fullscreen="!isPC"
+        width="640px"
     >
-      <div slot="title">
-        可以从生成的订阅链接中解析信息并填入页面
-      </div>
-      <el-form label-position="left">
-        <el-form-item prop="loadConfig">
+      <el-form label-position="top">
+        <el-form-item label="订阅链接" prop="loadConfig">
           <el-input
               v-model="loadConfig"
               type="textarea"
-              :autosize="{ minRows: 15, maxRows: 15}"
+              :autosize="{ minRows: 8, maxRows: 12 }"
               maxlength="5000"
               show-word-limit
+              placeholder="粘贴包含 target 和 url 参数的完整订阅链接"
           ></el-input>
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
-        <el-button type="primary" @click="loadConfig = ''; dialogLoadConfigVisible = false">取 消</el-button>
+        <el-button @click="loadConfig = ''; dialogLoadConfigVisible = false">取消</el-button>
         <el-button
             type="primary"
             @click="confirmLoadConfig"
             :disabled="loadConfig.length === 0"
-        >确 定
-        </el-button>
+        >解析并填入</el-button>
       </div>
     </el-dialog>
-  </div>
+  </main>
 </template>
 <script>
 const defaultBackend = process.env.VUE_APP_SUBCONVERTER_DEFAULT_BACKEND
@@ -277,9 +223,6 @@ export default {
         customBackend: {
           "默认后端": defaultBackend,
         },
-        backendOptions: [
-          {value: defaultBackend},
-        ],
         remoteConfig: [
           {
             label: "通用",
@@ -685,7 +628,6 @@ export default {
         diyua: "ShadowRocket",
         emoji: true,
         nodeList: false,
-        extraset: false,
         tls13: false,
         udp: false,
         xudp: false,
@@ -988,8 +930,6 @@ export default {
           .then(res => {
             this.backendVersion = res.data.replace(/backend\n$/gm, "");
             this.backendVersion = this.backendVersion.replace("subconverter", "SubConverter");
-            let b = this.form.customBackend.indexOf("127.0.0.1") !== -1;
-            b ? this.$message.success(`${this.backendVersion} 本地后端连接成功`) : this.$message.success(`${this.backendVersion} 后端连接成功`);
           })
           .catch(() => {
             this.$message.error("请求SubConverter版本号返回数据失败，该后端不可用！");
