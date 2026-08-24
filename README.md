@@ -45,7 +45,5 @@ docker run -d --restart always -p 8090:80 --name sub-web-modify sub-web-modify
 可通过页面的“后端地址”输入框或 URL 参数覆盖默认后端：
 
 ```text
-http://localhost:8080/?backend=https://api.are.sb
+http://localhost:8080/?backend=https://xxx.xxx
 ```
-
-项目继续保留原仓库的开源许可证，详见 `LICENSE`。
