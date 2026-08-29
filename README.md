@@ -2,6 +2,16 @@
 
 基于 Vue 2 和 Element UI 的订阅转换前端。默认订阅转换后端为 `https://api.are.sb`。
 
+## 页面预览
+
+### 桌面端
+
+![订阅转换页面桌面端预览](docs/screenshots/desktop.jpg)
+
+### 移动端
+
+<img src="docs/screenshots/mobile.jpg" alt="订阅转换页面移动端预览" width="375">
+
 ## 技术栈
 
 - Vue 2.7 + Vue Router 3
