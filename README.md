@@ -1,6 +1,6 @@
 # sub-web-modify
 
-基于 Vue 2 和 Element UI 的订阅转换前端。默认订阅转换后端为 `https://api.are.sb`。
+基于 Vue 2 和 Element UI 的订阅转换前端。
 
 ## 页面预览
 
