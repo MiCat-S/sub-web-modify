@@ -25,7 +25,7 @@
 推荐使用 Node.js 22。
 
 ```bash
-git clone https://github.com/Autlin/sub-web-modify.git
+git clone https://github.com/MiCat-S/sub-web-modify.git
 cd sub-web-modify
 yarn install --frozen-lockfile
 yarn serve
