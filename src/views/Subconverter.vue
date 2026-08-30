@@ -197,7 +197,7 @@ export default {
       backendVersion: "",
       // 是否为 PC 端
       isPC: true,
-      options: {
+      options: Object.freeze({
         clientTypes: {
           Clash: "clash",
           ShadowRocket: "shadowrocket",
@@ -613,11 +613,11 @@ export default {
             ]
           }
         ]
-      },
+      }),
       form: {
         sourceSubUrl: "",
         clientType: "",
-        customBackend: this.getUrlParam() == "" ? defaultBackend : this.getUrlParam(),
+        customBackend: this.getUrlParam() || defaultBackend,
         remoteConfig: "https://raw.githubusercontent.com/ACL4SSR/ACL4SSR/master/Clash/config/ACL4SSR_Online_Full_NoAuto.ini",
         excludeRemarks: "",
         includeRemarks: "",
@@ -657,71 +657,71 @@ export default {
     };
   },
   created() {
+    this.backendVersionController = null;
+    this.themeMedia = null;
+    this.themeMediaListener = null;
     document.title = "在线订阅转换工具";
     this.isPC = this.$getOS().isPc;
   },
   mounted() {
     this.form.clientType = "clash";
     this.getBackendVersion();
-    this.anhei();
-    let lightMedia = window.matchMedia('(prefers-color-scheme: light)');
-    let darkMedia = window.matchMedia('(prefers-color-scheme: dark)');
-    let callback = (e) => {
-      if (e.matches) {
-        this.anhei();
+    this.applyTheme();
+    this.themeMedia = window.matchMedia('(prefers-color-scheme: dark)');
+    this.themeMediaListener = event => {
+      if (!window.localStorage.getItem("localTheme")) {
+        this.setTheme(event.matches ? 'dark-mode' : 'light-mode');
       }
     };
-    if (typeof darkMedia.addEventListener === 'function' || typeof lightMedia.addEventListener === 'function') {
-      lightMedia.addEventListener('change', callback);
-      darkMedia.addEventListener('change', callback);
-    } //监听系统主题，自动切换！
+    if (typeof this.themeMedia.addEventListener === 'function') {
+      this.themeMedia.addEventListener('change', this.themeMediaListener);
+    } else {
+      this.themeMedia.addListener(this.themeMediaListener);
+    }
+  },
+  beforeDestroy() {
+    if (this.backendVersionController) {
+      this.backendVersionController.abort();
+    }
+    if (!this.themeMedia || !this.themeMediaListener) {
+      return;
+    }
+    if (typeof this.themeMedia.removeEventListener === 'function') {
+      this.themeMedia.removeEventListener('change', this.themeMediaListener);
+    } else {
+      this.themeMedia.removeListener(this.themeMediaListener);
+    }
   },
   methods: {
     selectChanged() {
       this.getBackendVersion();
     },
-    getUrlParam() {
-      let query = window.location.search.substring(1);
-      let vars = query.split('&');
-      for (let i = 0; i < vars.length; i++) {
-        var pair = vars[i].split('=');
-        if (pair[0] == "backend") {
-          return decodeURIComponent(pair[1]);
-        }
-      }
-      return "";
+    normalizeBackend(backend) {
+      return (backend || "").replace(/\/+$/, "");
     },
-    anhei() {
-      const getLocalTheme = window.localStorage.getItem("localTheme");
-      const lightMode = window.matchMedia && window.matchMedia('(prefers-color-scheme: light)');
-      const darkMode = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)');
-      if (getLocalTheme) {
-        document.getElementsByTagName('body')[0].className = getLocalTheme;
-      } //读取localstorage，优先级最高！
-      else if (getLocalTheme == null || getLocalTheme == "undefined" || getLocalTheme == "") {
-        if (new Date().getHours() >= 19 || new Date().getHours() < 7) {
-          document.getElementsByTagName('body')[0].setAttribute('class', 'dark-mode');
-        } else {
-          document.getElementsByTagName('body')[0].setAttribute('class', 'light-mode');
-        } //根据当前时间来判断，用来对付QQ等不支持媒体变量查询的浏览器
-        if (lightMode && lightMode.matches) {
-          document.getElementsByTagName('body')[0].setAttribute('class', 'light-mode');
-        }
-        if (darkMode && darkMode.matches) {
-          document.getElementsByTagName('body')[0].setAttribute('class', 'dark-mode');
-        } //根据窗口主题来判断当前主题！
+    getUrlParam() {
+      return new URLSearchParams(window.location.search).get("backend") || "";
+    },
+    setTheme(theme) {
+      document.body.className = theme;
+    },
+    applyTheme() {
+      const savedTheme = window.localStorage.getItem("localTheme");
+      if (savedTheme === 'light-mode' || savedTheme === 'dark-mode') {
+        this.setTheme(savedTheme);
+        return;
       }
+      if (window.matchMedia) {
+        this.setTheme(window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark-mode' : 'light-mode');
+        return;
+      }
+      const hour = new Date().getHours();
+      this.setTheme(hour >= 19 || hour < 7 ? 'dark-mode' : 'light-mode');
     },
     change() {
-      var zhuti = document.getElementsByTagName('body')[0].className;
-      if (zhuti === 'light-mode') {
-        document.getElementsByTagName('body')[0].setAttribute('class', 'dark-mode');
-        window.localStorage.setItem('localTheme', 'dark-mode');
-      }
-      if (zhuti === 'dark-mode') {
-        document.getElementsByTagName('body')[0].setAttribute('class', 'light-mode');
-        window.localStorage.setItem('localTheme', 'light-mode');
-      }
+      const theme = document.body.className === 'dark-mode' ? 'light-mode' : 'dark-mode';
+      this.setTheme(theme);
+      window.localStorage.setItem('localTheme', theme);
     },
     onCopy() {
       this.$message.success("已复制");
@@ -731,12 +731,9 @@ export default {
         this.$message.error("订阅链接与客户端为必填项");
         return false;
       }
-      let backend =
-          this.form.customBackend === ""
-              ? defaultBackend
-              : this.form.customBackend;
+      const backend = this.normalizeBackend(this.form.customBackend || defaultBackend);
       let sourceSub = this.form.sourceSubUrl;
-      sourceSub = sourceSub.replace(/(\n|\r|\n\r)/g, "|");
+      sourceSub = sourceSub.replace(/\r?\n|\r/g, "|");
       this.customSubUrl =
           backend +
           "/sub?target=" +
@@ -875,7 +872,7 @@ export default {
         this.form.appendType = param.get("append_type") === 'true';
       }
       if (param.get("tls13")) {
-        this.form.tls13 = param.get("tls13");
+        this.form.tls13 = param.get("tls13") === 'true';
       }
       if (param.get("xudp")) {
         this.form.xudp = param.get("xudp") === 'true';
@@ -923,16 +920,36 @@ export default {
       this.$message.success("订阅链接已成功解析为订阅信息");
     },
     getBackendVersion() {
+      if (this.backendVersionController) {
+        this.backendVersionController.abort();
+      }
+      const backend = this.normalizeBackend(this.form.customBackend);
+      if (!backend) {
+        this.backendVersion = "";
+        this.backendVersionController = null;
+        return;
+      }
+      const controller = new AbortController();
+      this.backendVersionController = controller;
       this.$axios
           .get(
-              this.form.customBackend + "/version"
+              backend + "/version",
+              { signal: controller.signal }
           )
           .then(res => {
             this.backendVersion = res.data.replace(/backend\n$/gm, "");
             this.backendVersion = this.backendVersion.replace("subconverter", "SubConverter");
           })
-          .catch(() => {
+          .catch(error => {
+            if (error.code === 'ERR_CANCELED') {
+              return;
+            }
             this.$message.error("请求SubConverter版本号返回数据失败，该后端不可用！");
+          })
+          .finally(() => {
+            if (this.backendVersionController === controller) {
+              this.backendVersionController = null;
+            }
           });
     }
   }

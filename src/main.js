@@ -7,7 +7,6 @@ require(`@/plugins/axios`)
 require(`@/plugins/device`)
 
 
-import 'element-ui/lib/theme-chalk/index.css'
 import './assets/css/light.min.css'
 import './assets/css/dark.min.css'
 import './assets/css/ui.css'
