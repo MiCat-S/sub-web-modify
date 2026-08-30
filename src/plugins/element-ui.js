@@ -1,17 +1,42 @@
 import Vue from 'vue'
-import Element from 'element-ui'
-import locale from 'element-ui/lib/locale/lang/zh-CN'
-Vue.use(Element, {
-    locale,
-    size: 'small'
-})
+import {
+  Button,
+  Card,
+  Checkbox,
+  Collapse,
+  CollapseItem,
+  Dialog,
+  Form,
+  FormItem,
+  Input,
+  Message,
+  Option,
+  OptionGroup,
+  Select,
+  Tooltip
+} from 'element-ui'
+import locale from 'element-ui/lib/locale'
+import lang from 'element-ui/lib/locale/lang/zh-CN'
 
-Vue.use(Element.Loading.directive);
+locale.use(lang)
 
-Vue.prototype.$loading = Element.Loading.service;
-Vue.prototype.$msgbox = Element.MessageBox;
-Vue.prototype.$alert = Element.MessageBox.alert;
-Vue.prototype.$confirm = Element.MessageBox.confirm;
-Vue.prototype.$prompt = Element.MessageBox.prompt;
-Vue.prototype.$notify = Element.Notification;
-Vue.prototype.$message = Element.Message;
+const components = [
+  Button,
+  Card,
+  Checkbox,
+  Collapse,
+  CollapseItem,
+  Dialog,
+  Form,
+  FormItem,
+  Input,
+  Option,
+  OptionGroup,
+  Select,
+  Tooltip
+]
+
+components.forEach(component => Vue.component(component.name, component))
+
+Vue.prototype.$ELEMENT = { size: 'small' }
+Vue.prototype.$message = Message
